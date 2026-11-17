@@ -45,6 +45,9 @@
 <script>
   // ▼ 앱 주소. 나중에 정식 배포로 바꿀 때는 이 한 줄만 /exec 주소로 바꾸면 됩니다.
   const APP_URL = 'https://script.google.com/macros/s/AKfycbwO7kbMQ7Oiuu9aI4IdS5vLMGOZfdB2DxZpUCJTnYE/dev';
+  // ▼ true: 앱을 이 창 안에 띄움(구글 안내 띠 없음, 단 구글 로그인이 끊기면 "액세스 권한 필요"로 막힐 수 있음)
+  //   false: 구글 앱 주소로 바로 넘어감(안내 띠는 보이지만 로그인은 항상 정상)
+  const EMBED = false;
 
   document.getElementById('go').href = APP_URL;
   document.getElementById('fallbackLink').href = APP_URL;
@@ -53,7 +56,9 @@
     || window.matchMedia('(display-mode: standalone)').matches
     || window.navigator.standalone === true;
 
-  if (isInstalled) {
+  if (isInstalled && !EMBED) {
+    location.replace(APP_URL);
+  } else if (isInstalled) {
     // 설치한 앱으로 열면: 앱을 이 창 안에 띄움 (구글 안내 띠 없음, 브라우저 탭으로 빠지지 않음)
     const frame = document.getElementById('appFrame');
     let loaded = false;
