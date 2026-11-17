@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>화진관리</title>
+<link rel="preconnect" href="https://script.google.com">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b4ea2">
 <link rel="icon" href="icon-192.png">
@@ -52,41 +53,3 @@
 <iframe id="appFrame" title="화진관리" allow="clipboard-read; clipboard-write"></iframe>
 <div id="fallback">앱 화면이 나오지 않으면 구글 로그인이 필요한 상태일 수 있습니다.
   <a id="fallbackLink" href="#" target="_blank" rel="noopener">브라우저에서 열기</a></div>
-<script>
-  // ▼ 앱 주소. 나중에 정식 배포로 바꿀 때는 이 한 줄만 /exec 주소로 바꾸면 됩니다.
-  const APP_URL = 'https://script.google.com/macros/s/AKfycbwO7kbMQ7Oiuu9aI4IdS5vLMGOZfdB2DxZpUCJTnYE/dev';
-  // ▼ true: 앱을 이 창 안에 띄움(구글 안내 띠 없음, 단 구글 로그인이 끊기면 "액세스 권한 필요"로 막힐 수 있음)
-  //   false: 구글 앱 주소로 바로 넘어감(안내 띠는 보이지만 로그인은 항상 정상)
-  const EMBED = false;
-
-  document.getElementById('fallbackLink').href = APP_URL;
-
-  const isInstalled = new URLSearchParams(location.search).get('app') === '1'
-    || window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true;
-
-  if (isInstalled) document.body.classList.add('splash'); // 설치한 앱으로 열면 시작 화면만 보임
-  // ▼ 시작 화면(CI)을 보여 주는 시간. 2500 = 2.5초
-  const SPLASH_MS = 1500;
-  if (isInstalled && !EMBED) {
-    setTimeout(() => location.replace(APP_URL), SPLASH_MS);
-  } else if (isInstalled) {
-    // 설치한 앱으로 열면: 앱을 이 창 안에 띄움 (구글 안내 띠 없음, 브라우저 탭으로 빠지지 않음)
-    const frame = document.getElementById('appFrame');
-    let loaded = false;
-    frame.addEventListener('load', () => {
-      loaded = true;
-      frame.style.display = 'block';
-      document.getElementById('splash').style.display = 'none';
-    });
-    frame.src = APP_URL;
-    // 15초 안에 아무 화면도 안 뜨면 브라우저로 여는 길을 보여줌
-    setTimeout(() => { if (!loaded) document.getElementById('fallback').style.display = 'block'; }, 15000);
-  }
-
-  if ('serviceWorker' in navigator) {
-    try { navigator.serviceWorker.register('sw.js'); } catch (e) {}
-  }
-</script>
-</body>
-</html>
