@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>화진 임대관리</title>
+<title>화진관리</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b4ea2">
 <link rel="icon" href="icon-192.png">
@@ -11,41 +11,60 @@
 <style>
   :root { --bg:#f4f6fa; --card:#ffffff; --text:#1d2433; --sub:#5b6577; --brand:#0b4ea2; }
   @media (prefers-color-scheme: dark) { :root { --bg:#14171d; --card:#1e232c; --text:#e8ecf3; --sub:#9aa4b5; } }
-  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system, "Noto Sans KR", sans-serif; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:-apple-system, "Noto Sans KR", sans-serif; }
   .wrap { max-width:420px; margin:0 auto; padding:32px 16px; text-align:center; }
-  img { width:96px; height:96px; border-radius:22px; }
+  .wrap img { width:96px; height:96px; border-radius:22px; }
   h1 { font-size:22px; margin:16px 0 6px; }
   p { color:var(--sub); font-size:14px; line-height:1.6; margin:6px 0; }
   .btn { display:block; width:100%; box-sizing:border-box; margin-top:14px; padding:14px; border:0; border-radius:10px;
          background:var(--brand); color:#fff; font-size:16px; font-weight:700; text-decoration:none; }
   .card { background:var(--card); border-radius:12px; padding:14px 16px; margin-top:20px; text-align:left; font-size:14px; line-height:1.7; }
+  /* 앱 화면: 현관문 안에 앱을 꽉 차게 띄움 */
+  #appFrame { position:fixed; inset:0; width:100%; height:100%; border:0; display:none; background:#fff; }
+  #fallback { position:fixed; left:16px; right:16px; bottom:16px; display:none; background:var(--card); border-radius:12px;
+              padding:12px 14px; box-shadow:0 4px 16px rgba(0,0,0,.2); font-size:13px; line-height:1.6; }
+  #fallback a { color:var(--brand); font-weight:700; }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="landing">
   <img src="icon-192.png" alt="">
-  <h1>화진 임대관리</h1>
-  <p id="msg">앱으로 이동하는 중입니다…</p>
-  <a class="btn" id="go" href="#">앱 열기</a>
+  <h1>화진관리</h1>
+  <p id="msg">앱을 여는 중입니다…</p>
+  <a class="btn" id="go" href="#">브라우저에서 열기</a>
   <div class="card" id="howto" style="display:none">
-    <b>홈 화면에 앱으로 설치하기</b><br>
-    · 삼성 인터넷: 아래 메뉴(≡) → <b>현재 페이지 추가</b> → <b>홈 화면</b><br>
-    · 크롬: 오른쪽 위 ⋮ → <b>홈 화면에 추가</b> 또는 <b>앱 설치</b><br>
+    <b>앱으로 설치하기</b><br>
+    · 삼성 인터넷: 주소창 오른쪽의 <b>설치 아이콘(⬇)</b> → 추가<br>
+    · 크롬: 오른쪽 위 ⋮ → <b>앱 설치</b><br>
     설치한 아이콘으로 열면 브라우저 탭이 아니라 앱 창으로 열립니다.
   </div>
 </div>
+<iframe id="appFrame" title="화진관리" allow="clipboard-read; clipboard-write"></iframe>
+<div id="fallback">앱 화면이 나오지 않으면 구글 로그인이 필요한 상태일 수 있습니다.
+  <a id="fallbackLink" href="#" target="_blank" rel="noopener">브라우저에서 열기</a></div>
 <script>
   // ▼ 앱 주소. 나중에 정식 배포로 바꿀 때는 이 한 줄만 /exec 주소로 바꾸면 됩니다.
   const APP_URL = 'https://script.google.com/macros/s/AKfycbwO7kbMQ7Oiuu9aI4IdS5vLMGOZfdB2DxZpUCJTnYE/dev';
 
   document.getElementById('go').href = APP_URL;
+  document.getElementById('fallbackLink').href = APP_URL;
 
-  // 설치한 아이콘으로 열었을 때(앱 창)만 바로 이동. 브라우저에서 열면 설치 안내를 보여줌
   const isInstalled = new URLSearchParams(location.search).get('app') === '1'
     || window.matchMedia('(display-mode: standalone)').matches
     || window.navigator.standalone === true;
+
   if (isInstalled) {
-    location.replace(APP_URL);
+    // 설치한 앱으로 열면: 앱을 이 창 안에 띄움 (구글 안내 띠 없음, 브라우저 탭으로 빠지지 않음)
+    const frame = document.getElementById('appFrame');
+    let loaded = false;
+    frame.addEventListener('load', () => {
+      loaded = true;
+      frame.style.display = 'block';
+      document.getElementById('landing').style.display = 'none';
+    });
+    frame.src = APP_URL;
+    // 15초 안에 아무 화면도 안 뜨면 브라우저로 여는 길을 보여줌
+    setTimeout(() => { if (!loaded) document.getElementById('fallback').style.display = 'block'; }, 15000);
   } else {
     document.getElementById('msg').textContent = '아직 앱으로 설치되지 않았습니다.';
     document.getElementById('howto').style.display = 'block';
