@@ -12,27 +12,37 @@
   :root { --bg:#f4f6fa; --card:#ffffff; --text:#1d2433; --sub:#5b6577; --brand:#0b4ea2; }
   @media (prefers-color-scheme: dark) { :root { --bg:#14171d; --card:#1e232c; --text:#e8ecf3; --sub:#9aa4b5; } }
   html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:-apple-system, "Noto Sans KR", sans-serif; }
+  /* 앱 시작 화면: 파란 바탕 가운데 로고 + 로딩 표시 */
+  body.splash { background:#ffffff; }
+  .splashBox { display:none; height:100%; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  body.splash .splashBox { display:flex; }
+  body.splash .wrap { display:none; }
+  .splashBox .ci { width:72%; max-width:300px; height:auto; animation:fadein .6s ease-out; }
+  @keyframes fadein { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .spinner { margin-top:40px; width:24px; height:24px; border-radius:50%; border:3px solid #dfe6f2; border-top-color:#0b4ea2; animation:spin .9s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  /* 브라우저로 열었을 때(설치 전) 안내 화면 */
   .wrap { max-width:420px; margin:0 auto; padding:32px 16px; text-align:center; }
   .wrap img { width:96px; height:96px; border-radius:22px; }
   h1 { font-size:22px; margin:16px 0 6px; }
   p { color:var(--sub); font-size:14px; line-height:1.6; margin:6px 0; }
-  .btn { display:block; width:100%; box-sizing:border-box; margin-top:14px; padding:14px; border:0; border-radius:10px;
-         background:var(--brand); color:#fff; font-size:16px; font-weight:700; text-decoration:none; }
   .card { background:var(--card); border-radius:12px; padding:14px 16px; margin-top:20px; text-align:left; font-size:14px; line-height:1.7; }
-  /* 앱 화면: 현관문 안에 앱을 꽉 차게 띄움 */
   #appFrame { position:fixed; inset:0; width:100%; height:100%; border:0; display:none; background:#fff; }
-  #fallback { position:fixed; left:16px; right:16px; bottom:16px; display:none; background:var(--card); border-radius:12px;
+  #fallback { position:fixed; left:16px; right:16px; bottom:16px; display:none; background:var(--card); color:var(--text); border-radius:12px;
               padding:12px 14px; box-shadow:0 4px 16px rgba(0,0,0,.2); font-size:13px; line-height:1.6; }
   #fallback a { color:var(--brand); font-weight:700; }
 </style>
 </head>
 <body>
+<div class="splashBox" id="splash">
+  <img class="ci" src="ci.png" alt="화진주택관리">
+  <div class="spinner"></div>
+</div>
 <div class="wrap" id="landing">
   <img src="icon-192.png" alt="">
-  <h1>화진관리</h1>
-  <p id="msg">앱을 여는 중입니다…</p>
-  <a class="btn" id="go" href="#">브라우저에서 열기</a>
-  <div class="card" id="howto" style="display:none">
+  <h1>화진주택관리</h1>
+  <p>아직 앱으로 설치되지 않았습니다.</p>
+  <div class="card">
     <b>앱으로 설치하기</b><br>
     · 삼성 인터넷: 주소창 오른쪽의 <b>설치 아이콘(⬇)</b> → 추가<br>
     · 크롬: 오른쪽 위 ⋮ → <b>앱 설치</b><br>
@@ -49,15 +59,17 @@
   //   false: 구글 앱 주소로 바로 넘어감(안내 띠는 보이지만 로그인은 항상 정상)
   const EMBED = false;
 
-  document.getElementById('go').href = APP_URL;
   document.getElementById('fallbackLink').href = APP_URL;
 
   const isInstalled = new URLSearchParams(location.search).get('app') === '1'
     || window.matchMedia('(display-mode: standalone)').matches
     || window.navigator.standalone === true;
 
+  if (isInstalled) document.body.classList.add('splash'); // 설치한 앱으로 열면 시작 화면만 보임
+  // ▼ 시작 화면(CI)을 보여 주는 시간. 2500 = 2.5초
+  const SPLASH_MS = 2500;
   if (isInstalled && !EMBED) {
-    location.replace(APP_URL);
+    setTimeout(() => location.replace(APP_URL), SPLASH_MS);
   } else if (isInstalled) {
     // 설치한 앱으로 열면: 앱을 이 창 안에 띄움 (구글 안내 띠 없음, 브라우저 탭으로 빠지지 않음)
     const frame = document.getElementById('appFrame');
@@ -65,14 +77,11 @@
     frame.addEventListener('load', () => {
       loaded = true;
       frame.style.display = 'block';
-      document.getElementById('landing').style.display = 'none';
+      document.getElementById('splash').style.display = 'none';
     });
     frame.src = APP_URL;
     // 15초 안에 아무 화면도 안 뜨면 브라우저로 여는 길을 보여줌
     setTimeout(() => { if (!loaded) document.getElementById('fallback').style.display = 'block'; }, 15000);
-  } else {
-    document.getElementById('msg').textContent = '아직 앱으로 설치되지 않았습니다.';
-    document.getElementById('howto').style.display = 'block';
   }
 
   if ('serviceWorker' in navigator) {
