@@ -13,12 +13,12 @@
   :root { --bg:#f4f6fa; --card:#ffffff; --text:#1d2433; --sub:#5b6577; --brand:#0b4ea2; }
   @media (prefers-color-scheme: dark) { :root { --bg:#14171d; --card:#1e232c; --text:#e8ecf3; --sub:#9aa4b5; } }
   html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:-apple-system, "Noto Sans KR", sans-serif; }
-  /* 앱 시작 화면: 파란 바탕 가운데 로고 + 로딩 표시 */
-  body.splash { background:#ffffff; }
+  /* 앱 첫 화면(약 1초): 파란 바탕에 흰 CI. 실제 로딩 화면은 앱 안에서 따로 보여줌 */
+  body.splash { background:#0b4ea2; }
   .splashBox { display:none; height:100%; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
   body.splash .splashBox { display:flex; }
   body.splash .wrap { display:none; }
-  .splashBox .ci { width:72%; max-width:300px; height:auto; animation:fadein .6s ease-out; }
+  .splashBox .ci { width:72%; max-width:300px; height:auto; filter:brightness(0) invert(1); animation:fadein .5s ease-out; }
   @keyframes fadein { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
   .spinner { margin-top:40px; width:24px; height:24px; border-radius:50%; border:3px solid #dfe6f2; border-top-color:#0b4ea2; animation:spin .9s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
@@ -37,8 +37,6 @@
 <body>
 <div class="splashBox" id="splash">
   <img class="ci" src="ci.png" alt="화진주택관리">
-  <div class="spinner"></div>
-  <div style="margin-top:14px; font-size:14px; color:#5b6577;">불러오는 중…</div>
 </div>
 <div class="wrap" id="landing">
   <img src="icon-192.png" alt="">
@@ -68,8 +66,8 @@
     || window.navigator.standalone === true;
 
   if (isInstalled) document.body.classList.add('splash'); // 설치한 앱으로 열면 시작 화면만 보임
-  // ▼ 시작 화면(CI)을 보여 주는 시간. 0 = 바로 넘어감 (실제 로딩 화면은 앱 안에서 데이터를 다 불러올 때까지 보여줌)
-  const SPLASH_MS = 0;
+  // ▼ 첫 화면(CI)을 보여 주는 시간. 1000 = 1초 (실제 로딩 화면은 앱 안에서 데이터를 다 불러올 때까지 보여줌)
+  const SPLASH_MS = 1000;
   if (isInstalled && !EMBED) {
     setTimeout(() => location.replace(APP_URL), SPLASH_MS);
   } else if (isInstalled) {
