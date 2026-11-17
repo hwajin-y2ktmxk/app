@@ -67,7 +67,7 @@
 
   if (isInstalled) document.body.classList.add('splash'); // 설치한 앱으로 열면 시작 화면만 보임
   // ▼ 시작 화면(CI)을 보여 주는 시간. 2500 = 2.5초
-  const SPLASH_MS = 2500;
+  const SPLASH_MS = 1500;
   if (isInstalled && !EMBED) {
     setTimeout(() => location.replace(APP_URL), SPLASH_MS);
   } else if (isInstalled) {
